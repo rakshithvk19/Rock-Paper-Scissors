@@ -1,0 +1,26 @@
+[package]
+name = "rps-computer-ai"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+description = "Computer AI for Rock-Paper-Scissors on Fluent"
+
+[dependencies]
+fluentbase-sdk = { git = "https://github.com/fluentlabs-xyz/fluentbase", default-features = false }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+path = "src/lib.rs"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+
+[profile.dev]
+panic = "abort"
+
+[profile.dev.package."*"]
+opt-level = 3

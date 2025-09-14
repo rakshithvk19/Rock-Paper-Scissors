@@ -20,7 +20,7 @@ module.exports = {
   
   // Contract paths
   contracts: {
-    rust: "rust-oracle/",
+    rust: ["rust-oracle/", "rust-computer-ai/"],
     solidity: "contracts/"
   },
   

@@ -1,266 +1,119 @@
 # 🎮 Cross-VM Rock-Paper-Scissors Tournament
 
-> Demonstrating Fluent's revolutionary blended execution where Rust and Solidity contracts interact atomically without bridges - Built with pure gblend workflow
+> Showcasing Fluent's revolutionary blended execution where Rust and Solidity contracts interact atomically without bridges
 
 [![Built on Fluent](https://img.shields.io/badge/Built%20on-Fluent-blue)](https://fluent.xyz)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.20-blue)](https://soliditylang.org)
 [![Rust](https://img.shields.io/badge/Rust-1.70+-orange)](https://rust-lang.org)
-[![gblend](https://img.shields.io/badge/Built%20with-gblend-green)](https://github.com/fluentlabs-xyz/gblend)
-
-## 🌟 Why This Matters
-
-This project showcases what makes Fluent unique in the L2 landscape:
-- **Cross-VM Atomic Composability**: Solidity directly calls Rust functions
-- **No Bridges Required**: True real-time interaction between different VMs
-- **Best of Both Worlds**: Rust's performance + Solidity's ecosystem
-- **Pure gblend Workflow**: Using Fluent's native tooling
-
-## 🏗️ Architecture
-
-```
-Player → Solidity Contract → Rust Oracle → Back to Solidity
-         (Game State)        (Randomness)   (Results)
-```
-
-### Components
-
-1. **Rust Oracle** (`rust-oracle/`)
-   - Generates random number of rounds (3, 5, or 7)
-   - Provides computer moves
-   - Determines round winners
-   - Calculates tournament champion
-
-2. **Solidity Tournament** (`contracts/`)
-   - Manages game state
-   - Tracks player statistics
-   - Handles tournament flow
-   - Emits events for UI
+[![React](https://img.shields.io/badge/React-18.2-blue)](https://reactjs.org)
 
 ## 🚀 Quick Start
 
-### Prerequisites
-
+### 1. Setup
 ```bash
-# Install Rust
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-# Install gblend CLI
-cargo install gblend
-
-# Add WASM target
-rustup target add wasm32-unknown-unknown
+make setup           # Install everything + create env files
 ```
 
-### Setup & Deploy
-
-1. **Clone & Configure**
+### 2. Get Testnet Tokens
 ```bash
-git clone <your-repo>
-cd Cross-VM-Rock-Paper-Scissors
-cp .env.example .env
-# Edit .env with your private key
+make get-faucet      # Visit faucet to get test ETH
 ```
 
-2. **Install & Build**
+### 3. Deploy Contracts
 ```bash
-make install
-make build
+make deploy-contracts # Interactive deployment process
 ```
 
-3. **Get Testnet Tokens**
+### 4. Start Playing
 ```bash
-# Visit faucet
-open https://faucet.dev.gblend.xyz/
-# Or use command
-make get-faucet
+make dev             # Start frontend at localhost:3000
 ```
 
-4. **Deploy Contracts**
-```bash
-# Deploy Rust Oracle first
-make deploy-oracle
-# Update ORACLE_ADDRESS in .env
+## 🏗️ Architecture
 
-# Deploy Tournament contract
-make deploy-game
+### Smart Contract System
+```
+Player → Solidity Tournament → Rust Computer AI → Back to Solidity
+         (Game Logic)          (Decision Making)    (Payouts)
+                   ↓
+              Rust Oracle
+              (Randomness)
+                   ↓
+           Solidity Fund Manager
+           (Computer's Money)
 ```
 
-5. **Play the Game!**
-```bash
-# Use gblend to interact with contracts
-gblend call RPSTournament startTournament --network fluent
-gblend call RPSTournament playRound 0 --network fluent  # 0=Rock, 1=Paper, 2=Scissors
-```
+### Component Breakdown
 
-## 📝 How It Works
+1. **🔮 Oracle (Rust)** - Pure randomness generation
+2. **🤖 Computer AI (Rust)** - Game strategy & betting decisions  
+3. **💰 Fund Manager (Solidity)** - Manages computer's betting funds
+4. **🎮 Tournament (Solidity)** - Core game logic & payouts
+5. **⚛️ Frontend (React)** - Modern web interface
 
-### Game Flow
+## 🎯 Key Features
 
-1. **Tournament Start**: 
-   - Player calls `startTournament()`
-   - Rust oracle determines 3, 5, or 7 rounds
-   - Unique seed generated for fairness
-
-2. **Playing Rounds**:
-   - Player submits move (Rock/Paper/Scissors)
-   - Rust oracle generates computer's move
-   - Oracle determines round winner
-   - First to win majority becomes champion
-
-3. **Cross-VM Magic**:
-   - Every round involves 3 cross-VM calls
-   - No async complexity or bridging
-   - ~35,000 gas per round (efficient!)
-
-### Tournament Rules
-- **Best of 3**: Need 2 wins
-- **Best of 5**: Need 3 wins  
-- **Best of 7**: Need 4 wins
+- **🎚️ Dynamic Betting** - Slider-based bet selection (0.001-0.1 ETH)
+- **🧠 Smart Computer AI** - Pattern detection & adaptive betting
+- **💸 Automatic Payouts** - Winner-takes-all or draw refunds
+- **📊 Live Statistics** - Real-time game stats and history
+- **🔗 MetaMask Integration** - Seamless wallet connection
+- **📱 Responsive Design** - Works on desktop and mobile
 
 ## 🛠️ Development
 
-### Commands
-
+### Available Commands
 ```bash
-make help           # Show all commands
-make build          # Build everything
-make deploy         # Deploy all contracts
-make clean          # Clean artifacts
-make test-rust      # Run Rust tests
-make info           # Show project info
+make help            # Show all available commands
+make build           # Build all contracts
+make test-rust       # Run Rust tests  
+make test-game       # Test deployed contracts
+make clean           # Clean build artifacts
+make info            # Show project info
 ```
 
 ### Project Structure
-
 ```
-Cross-VM-Rock-Paper-Scissors/
 ├── contracts/              # Solidity contracts
-│   ├── RPSTournament.sol
-│   └── interfaces/
-│       └── IRandomOracle.sol
-├── rust-oracle/           # Rust WASM oracle
-│   ├── src/lib.rs
-│   └── Cargo.toml
-├── gblend.config.js      # gblend configuration
+├── rust-oracle/           # Randomness generation
+├── rust-computer-ai/      # AI decision making
+├── frontend/              # React web app
 ├── Makefile              # Build automation
-├── README.md             # Documentation
-└── .env                  # Configuration
+└── gblend.config.js      # Fluent configuration
 ```
 
-## 🎯 Unique Features
+## 🌐 Network Details
 
-### 1. True Cross-VM Composability
-```solidity
-// Solidity directly calls Rust
-uint256 rounds = oracle.generate_rounds(seed);
-uint256 computerMove = oracle.get_rps_choice(round, seed);
-```
+- **Network**: Fluent Devnet
+- **RPC**: https://rpc.dev.gblend.xyz/
+- **Chain ID**: 20993
+- **Explorer**: https://blockscout.dev.gblend.xyz/
+- **Faucet**: https://faucet.dev.gblend.xyz/
 
-### 2. Dynamic Gameplay
-- Random tournament length
-- Unpredictable computer moves
-- Fair winner determination
+## 🎮 How to Play
 
-### 3. Pure gblend Workflow
-- Single tool for both VMs
-- Fluent-optimized deployment
-- Simplified development
+1. **Connect Wallet** - MetaMask with Fluent network
+2. **Place Bet** - Use slider to select amount (0.001-0.1 ETH)
+3. **Start Game** - Computer will also bet automatically
+4. **Play Rounds** - Choose Rock 🪨, Paper 📄, or Scissors ✂️
+5. **Win Prize** - Winner takes the entire pot!
 
-## 🔧 Configuration
+## 🔧 Technical Highlights
 
-### Network Settings (gblend.config.js)
-```javascript
-networks: {
-  fluent: {
-    url: "https://rpc.dev.gblend.xyz/",
-    chainId: 20993
-  }
-}
-```
+### Cross-VM Innovation
+- **Direct Function Calls** between Rust and Solidity
+- **Atomic Transactions** - All operations succeed or fail together
+- **Shared State** - Unified blockchain execution environment
+- **No Bridges Required** - True real-time interaction
 
-### Environment Variables (.env)
-```bash
-FLUENT_RPC_URL=https://rpc.dev.gblend.xyz/
-CHAIN_ID=20993
-PRIVATE_KEY=your_key_here
-ORACLE_ADDRESS=deployed_oracle_address
-TOURNAMENT_ADDRESS=deployed_tournament_address
-```
-
-## 📚 Technical Deep Dive
-
-### Cross-VM Communication
-
-Fluent enables direct function calls between VMs:
-
-1. **No Message Passing**: Direct synchronous calls
-2. **Atomic Execution**: All succeed or all revert
-3. **Shared State**: Unified blockchain state
-
-### Rust Oracle Design
-
-```rust
-// Pseudo-random using block data
-let mixed = block_number
-    .wrapping_add(block_timestamp)
-    .wrapping_mul(seed);
-```
-
-### Solidity Integration
-
-```solidity
-// Interface matches Rust function signatures
-interface IRandomOracle {
-    function generate_rounds(uint256 seed) external view returns (uint256);
-    // ... other functions
-}
-```
-
-## 🚢 Production Considerations
-
-### Improvements for Mainnet
-
-1. **Better Randomness**: Integrate Chainlink VRF
-2. **Token Integration**: Betting with ERC20
-3. **NFT Prizes**: Mint NFTs for champions
-4. **League System**: ELO ratings & seasons
-5. **Multi-player**: Tournament brackets
-
-### Security Considerations
-
-- ✅ No reentrancy vulnerabilities
-- ✅ Custom errors for gas efficiency
-- ✅ Input validation on all functions
-- ⚠️ Pseudo-random (upgrade to VRF for production)
-
-## 📈 What This Demonstrates
-
-For the Fluent team, this project shows:
-
-1. **Native Tool Adoption**: Using gblend exclusively
-2. **Technical Understanding**: Deep grasp of blended execution
-3. **Full-Stack Skills**: Rust + Solidity development
-4. **Simplicity Focus**: Clean, minimal setup
-5. **Best Practices**: Clean code and documentation
-
-## 🎉 Future Enhancements
-
-- [ ] Web3 Frontend (React + Wagmi)
-- [ ] Advanced game modes (Lizard-Spock)
-- [ ] Tournament brackets
-- [ ] Betting system
-- [ ] Mobile app
-- [ ] AI opponent using Rust ML
-
-## 📖 Resources
-
-- [Fluent Documentation](https://docs.fluent.xyz/)
-- [gblend Documentation](https://book.gblend.xyz/)
-- [Rust WASM Guide](https://rustwasm.github.io/book/)
+### Game Mechanics
+- **Random Tournament Length** - 1-10 rounds determined by Oracle
+- **Intelligent Computer** - Adaptive strategy with pattern recognition
+- **Fair Betting System** - Computer bets based on game analysis
+- **Transparent Randomness** - All random generation on-chain
 
 ## 🤝 Contributing
 
-Contributions welcome! Please:
 1. Fork the repository
 2. Create a feature branch
 3. Submit a pull request
@@ -271,6 +124,4 @@ MIT License
 
 ---
 
-**Built with ❤️ using gblend to showcase Fluent's revolutionary blended execution network**
-
-*Demonstrating the future of cross-VM blockchain development with native Fluent tooling*
+**Built with ❤️ using Fluent's blended execution to showcase the future of cross-VM blockchain development**

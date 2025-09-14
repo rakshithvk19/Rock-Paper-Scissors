@@ -2,248 +2,194 @@
 pragma solidity ^0.8.20;
 
 import "./interfaces/IRandomOracle.sol";
+import "./interfaces/IComputerAI.sol";
+import "./interfaces/IFundManager.sol";
 
 /// @title RPSTournament
-/// @notice Rock-Paper-Scissors tournament with cross-VM oracle integration
-/// @dev Demonstrates Fluent's blended execution with Rust oracle calls
+/// @notice Rock-Paper-Scissors tournament with betting
 contract RPSTournament {
     IRandomOracle public immutable oracle;
+    IComputerAI public immutable computerAI;
+    IFundManager public immutable fundManager;
     
-    // Game states
-    enum GameState { NOT_STARTED, IN_PROGRESS, COMPLETED }
     enum Move { ROCK, PAPER, SCISSORS }
-    enum RoundResult { DRAW, PLAYER_WIN, COMPUTER_WIN }
-    enum GameResult { ONGOING, PLAYER_CHAMPION, COMPUTER_CHAMPION }
+    enum GameState { NOT_STARTED, IN_PROGRESS, COMPLETED }
     
-    struct Tournament {
+    struct Game {
         address player;
         uint256 totalRounds;
         uint256 currentRound;
         uint256 playerWins;
         uint256 computerWins;
-        uint256 draws;
         GameState state;
-        GameResult result;
         uint256 gameSeed;
         uint256[] playerMoves;
         uint256[] computerMoves;
-        uint256[] roundResults;
-        uint256 startTime;
-        uint256 endTime;
+        uint256 playerBet;
+        uint256 computerBet;
+        uint256 totalPot;
     }
     
-    // State variables
-    mapping(address => Tournament) public tournaments;
-    mapping(address => uint256[]) public playerHistory;
-    uint256 public totalGamesPlayed;
-    uint256 public totalRoundsPlayed;
+    mapping(address => Game) public games;
     
-    // Leaderboard tracking
-    address[] public players;
-    mapping(address => bool) public hasPlayed;
-    
-    // Events
-    event TournamentStarted(address indexed player, uint256 totalRounds, uint256 gameSeed);
+    event GameStarted(address indexed player, uint256 totalRounds, uint256 playerBet);
     event RoundPlayed(
         address indexed player, 
         uint256 round, 
-        uint256 playerMove, 
-        uint256 computerMove, 
-        RoundResult result
+        Move playerMove, 
+        Move computerMove, 
+        string result
     );
-    event TournamentCompleted(
+    event GameCompleted(
         address indexed player, 
-        GameResult result, 
+        string result, 
         uint256 playerWins, 
         uint256 computerWins,
-        uint256 duration
+        uint256 payout
     );
     
-    // Custom errors for gas optimization
-    error TournamentInProgress();
-    error NoActiveTournament();
-    error TournamentAlreadyCompleted();
-    error InvalidMove();
-    
-    constructor(address _oracle) {
+    constructor(address _oracle, address _computerAI, address _fundManager) {
         oracle = IRandomOracle(_oracle);
+        computerAI = IComputerAI(_computerAI);
+        fundManager = IFundManager(_fundManager);
     }
     
-    /// @notice Start a new tournament
-    /// @dev Calls Rust oracle to determine number of rounds
-    function startTournament() external {
-        if (tournaments[msg.sender].state == GameState.IN_PROGRESS) {
-            revert TournamentInProgress();
-        }
+    /// @notice Start a new game with betting
+    function startGame() external payable {
+        require(games[msg.sender].state != GameState.IN_PROGRESS, "Game in progress");
+        require(msg.value > 0, "Must place a bet");
         
-        // Generate unique seed for this game
-        uint256 seed = uint256(
-            keccak256(
-                abi.encodePacked(
-                    msg.sender, 
-                    block.timestamp, 
-                    block.number,
-                    totalGamesPlayed
-                )
-            )
-        );
-        
-        // Cross-VM call to Rust oracle for round determination
+        uint256 seed = oracle.get_random_seed();
         uint256 rounds = oracle.generate_rounds(seed);
         
-        // Initialize tournament
-        delete tournaments[msg.sender]; // Clear previous tournament
+        // Get computer's betting decision
+        uint256 computerBetAmount = computerAI.get_betting_advice(0, 0, rounds, 0);
         
-        Tournament storage tourney = tournaments[msg.sender];
-        tourney.player = msg.sender;
-        tourney.totalRounds = rounds;
-        tourney.state = GameState.IN_PROGRESS;
-        tourney.result = GameResult.ONGOING;
-        tourney.gameSeed = seed;
-        tourney.startTime = block.timestamp;
+        // Ensure computer can afford the bet
+        require(fundManager.can_afford_bet(computerBetAmount), "Computer cannot afford bet");
+        require(fundManager.computer_bet(computerBetAmount), "Computer bet failed");
         
-        // Track player
-        if (!hasPlayed[msg.sender]) {
-            players.push(msg.sender);
-            hasPlayed[msg.sender] = true;
-        }
+        games[msg.sender] = Game({
+            player: msg.sender,
+            totalRounds: rounds,
+            currentRound: 0,
+            playerWins: 0,
+            computerWins: 0,
+            state: GameState.IN_PROGRESS,
+            gameSeed: seed,
+            playerMoves: new uint256[](0),
+            computerMoves: new uint256[](0),
+            playerBet: msg.value,
+            computerBet: computerBetAmount,
+            totalPot: msg.value + computerBetAmount
+        });
         
-        totalGamesPlayed++;
-        playerHistory[msg.sender].push(totalGamesPlayed);
-        
-        emit TournamentStarted(msg.sender, rounds, seed);
+        emit GameStarted(msg.sender, rounds, msg.value);
     }
     
-    /// @notice Play a round in the tournament
-    /// @param _playerMove The player's move choice
-    /// @dev Makes multiple cross-VM calls to Rust oracle
-    function playRound(Move _playerMove) external {
-        Tournament storage tourney = tournaments[msg.sender];
+    /// @notice Play a round
+    function playRound(Move playerMove) external {
+        Game storage game = games[msg.sender];
+        require(game.state == GameState.IN_PROGRESS, "No active game");
+        require(game.currentRound < game.totalRounds, "Game completed");
         
-        if (tourney.state != GameState.IN_PROGRESS) {
-            revert NoActiveTournament();
-        }
-        if (tourney.currentRound >= tourney.totalRounds) {
-            revert TournamentAlreadyCompleted();
-        }
+        // Get computer move from AI
+        Move computerMove = Move(computerAI.get_move(
+            game.currentRound, 
+            game.gameSeed, 
+            game.playerMoves
+        ));
         
-        uint256 playerMove = uint256(_playerMove);
-        if (playerMove > 2) {
-            revert InvalidMove();
-        }
+        // Store moves
+        game.playerMoves.push(uint256(playerMove));
+        game.computerMoves.push(uint256(computerMove));
         
-        // Cross-VM call: Get computer's move from Rust oracle
-        uint256 computerMove = oracle.get_rps_choice(tourney.currentRound, tourney.gameSeed);
-        
-        // Cross-VM call: Determine round winner
-        uint256 roundResult = oracle.check_round_winner(playerMove, computerMove);
-        
-        // Store round data
-        tourney.playerMoves.push(playerMove);
-        tourney.computerMoves.push(computerMove);
-        tourney.roundResults.push(roundResult);
-        tourney.currentRound++;
-        totalRoundsPlayed++;
-        
-        // Update scores
-        if (roundResult == 1) {
-            tourney.playerWins++;
-            emit RoundPlayed(msg.sender, tourney.currentRound, playerMove, computerMove, RoundResult.PLAYER_WIN);
-        } else if (roundResult == 2) {
-            tourney.computerWins++;
-            emit RoundPlayed(msg.sender, tourney.currentRound, playerMove, computerMove, RoundResult.COMPUTER_WIN);
+        // Determine winner
+        string memory result;
+        if (playerMove == computerMove) {
+            result = "Draw";
+        } else if (_playerWins(playerMove, computerMove)) {
+            game.playerWins++;
+            result = "Player wins";
         } else {
-            tourney.draws++;
-            emit RoundPlayed(msg.sender, tourney.currentRound, playerMove, computerMove, RoundResult.DRAW);
+            game.computerWins++;
+            result = "Computer wins";
         }
         
-        // Check for tournament completion
-        uint256 majorityNeeded = oracle.get_majority_threshold(tourney.totalRounds);
+        game.currentRound++;
         
-        if (tourney.playerWins >= majorityNeeded || 
-            tourney.computerWins >= majorityNeeded || 
-            tourney.currentRound >= tourney.totalRounds) {
-            
-            // Cross-VM call: Determine final champion
-            uint256 champion = oracle.determine_champion(
-                tourney.playerWins, 
-                tourney.computerWins, 
-                tourney.totalRounds
-            );
-            
-            if (champion == 1) {
-                tourney.result = GameResult.PLAYER_CHAMPION;
-            } else if (champion == 2) {
-                tourney.result = GameResult.COMPUTER_CHAMPION;
-            }
-            
-            tourney.state = GameState.COMPLETED;
-            tourney.endTime = block.timestamp;
-            
-            emit TournamentCompleted(
-                msg.sender, 
-                tourney.result, 
-                tourney.playerWins, 
-                tourney.computerWins,
-                tourney.endTime - tourney.startTime
-            );
+        emit RoundPlayed(msg.sender, game.currentRound, playerMove, computerMove, result);
+        
+        // Check if game is complete
+        if (game.currentRound >= game.totalRounds) {
+            _completeGame(game);
         }
     }
     
-    /// @notice Get current tournament status
-    function getTournamentStatus(address player) external view returns (
+    /// @notice Complete the game and distribute payouts
+    function _completeGame(Game storage game) private {
+        game.state = GameState.COMPLETED;
+        
+        uint256 payout = 0;
+        string memory result;
+        
+        if (game.playerWins > game.computerWins) {
+            // Player wins - gets the full pot
+            result = "Player Champion!";
+            payout = game.totalPot;
+            payable(game.player).transfer(payout);
+        } else if (game.computerWins > game.playerWins) {
+            // Computer wins - winnings go back to fund manager
+            result = "Computer Champion!";
+            fundManager.addWinnings(game.totalPot);
+        } else {
+            // Draw - both get their original bets back
+            result = "Draw!";
+            payout = game.playerBet;
+            payable(game.player).transfer(payout);
+            fundManager.addWinnings(game.computerBet);
+        }
+        
+        emit GameCompleted(game.player, result, game.playerWins, game.computerWins, payout);
+    }
+    
+    /// @notice Check if player wins a round
+    function _playerWins(Move playerMove, Move computerMove) private pure returns (bool) {
+        return (playerMove == Move.ROCK && computerMove == Move.SCISSORS) ||
+               (playerMove == Move.PAPER && computerMove == Move.ROCK) ||
+               (playerMove == Move.SCISSORS && computerMove == Move.PAPER);
+    }
+    
+    /// @notice Get current game status
+    function getGameStatus(address player) external view returns (
         GameState state,
         uint256 totalRounds,
         uint256 currentRound,
         uint256 playerWins,
         uint256 computerWins,
-        uint256 draws,
-        GameResult result
+        uint256 playerBet,
+        uint256 computerBet,
+        uint256 totalPot
     ) {
-        Tournament memory t = tournaments[player];
-        return (t.state, t.totalRounds, t.currentRound, t.playerWins, t.computerWins, t.draws, t.result);
-    }
-    
-    /// @notice Get detailed round history
-    function getRoundHistory(address player) external view returns (
-        uint256[] memory playerMoves,
-        uint256[] memory computerMoves,
-        uint256[] memory results
-    ) {
-        Tournament memory t = tournaments[player];
-        return (t.playerMoves, t.computerMoves, t.roundResults);
-    }
-    
-    /// @notice Convert move to string
-    function getMoveString(uint256 move) public pure returns (string memory) {
-        if (move == 0) return "Rock";
-        if (move == 1) return "Paper";
-        if (move == 2) return "Scissors";
-        return "Invalid";
-    }
-    
-    /// @notice Get player statistics
-    function getPlayerStats(address player) external view returns (
-        uint256 gamesPlayed,
-        uint256 currentWins,
-        uint256 currentLosses,
-        bool inTournament
-    ) {
-        Tournament memory t = tournaments[player];
+        Game memory game = games[player];
         return (
-            playerHistory[player].length,
-            t.playerWins,
-            t.computerWins,
-            t.state == GameState.IN_PROGRESS
+            game.state, 
+            game.totalRounds, 
+            game.currentRound, 
+            game.playerWins, 
+            game.computerWins,
+            game.playerBet,
+            game.computerBet,
+            game.totalPot
         );
     }
     
-    /// @notice Get global statistics
-    function getGlobalStats() external view returns (
-        uint256 _totalGamesPlayed,
-        uint256 _totalRoundsPlayed,
-        uint256 _totalPlayers
+    /// @notice Get move history for a player
+    function getMoveHistory(address player) external view returns (
+        uint256[] memory playerMoves,
+        uint256[] memory computerMoves
     ) {
-        return (totalGamesPlayed, totalRoundsPlayed, players.length);
+        Game memory game = games[player];
+        return (game.playerMoves, game.computerMoves);
     }
 }
