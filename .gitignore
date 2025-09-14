@@ -1,0 +1,40 @@
+# Foundry
+cache/
+out/
+broadcast/
+
+# Rust
+rust-oracle/target/
+rust-oracle/Cargo.lock
+*.wasm
+!rps_oracle_optimized.wasm
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+lib/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Deployment artifacts
+deployment.json
+deployments/
+
+# Test coverage
+coverage/
+coverage.json
+lcov.info
+
+# Misc
+*.log
+.gas-snapshot
+
