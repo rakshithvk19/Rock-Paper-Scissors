@@ -1,20 +1,64 @@
-import { useBalance } from 'wagmi'
-import { formatEther } from 'viem'
+import { useBalance, useReadContract } from "wagmi";
+import { formatEther } from "viem";
+import { FundManagerABI, RPSTournamentABI } from "../contracts";
+import { CONTRACT_ADDRESSES } from "../utils/constants";
 
-export function useWalletBalance(address: `0x${string}` | undefined) {
-  const { data: balance, refetch } = useBalance({
-    address,
+export function useBalances(playerAddress: `0x${string}` | undefined) {
+  // User wallet balance
+  const { data: walletBalance, refetch: refetchWallet } = useBalance({
+    address: playerAddress,
     query: {
-      enabled: !!address,
-      refetchInterval: 15000, // Poll every 15 seconds
+      enabled: !!playerAddress,
+      refetchInterval: 15000,
     },
-  })
+  });
 
-  const formattedBalance = balance ? formatEther(balance.value) : '0'
+  // Computer balance from FundManager
+  const { data: computerBalance, refetch: refetchComputer } = useReadContract({
+    address: CONTRACT_ADDRESSES.FUND_MANAGER as `0x${string}`,
+    abi: FundManagerABI,
+    functionName: "get_computer_balance",
+    query: {
+      refetchInterval: 15000,
+    },
+  });
+
+  // Current pot from Tournament (if active game exists)
+  const { data: gameStatus, refetch: refetchPot } = useReadContract({
+    address: CONTRACT_ADDRESSES.TOURNAMENT as `0x${string}`,
+    abi: RPSTournamentABI,
+    functionName: "getGameStatus",
+    args: playerAddress ? [playerAddress] : undefined,
+    query: {
+      enabled: !!playerAddress,
+      refetchInterval: 15000,
+    },
+  });
+
+  const currentPot = gameStatus ? gameStatus[7] : 0n; // totalPot is index 7
 
   return {
-    balance: balance?.value,
-    formattedBalance,
-    refetchBalance: refetch,
-  }
+    // Raw balances
+    walletBalance: walletBalance?.value || 0n,
+    computerBalance: (computerBalance as bigint) || 0n,
+    currentPot,
+
+    // Formatted balances
+    formattedWallet: formatEther(walletBalance?.value || 0n),
+    formattedComputer: formatEther((computerBalance as bigint) || 0n),
+    formattedPot: formatEther(currentPot),
+
+    // Utilities
+    canAfford: (amount: number) => {
+      const balanceInEth = parseFloat(formatEther(walletBalance?.value || 0n));
+      return balanceInEth >= amount;
+    },
+
+    // Refetch functions
+    refetchAll: () => {
+      refetchWallet();
+      refetchComputer();
+      refetchPot();
+    },
+  };
 }

@@ -1,30 +1,39 @@
-import { useState } from 'react'
-import { useAccount } from 'wagmi'
-import { useGameContract } from '../hooks/useGameContract'
-import { useWalletBalance } from '../hooks/useBalance'
-import { MIN_BET_ETH, MAX_BET_ETH, BET_STEP_ETH, QUICK_BET_OPTIONS } from '../utils/constants'
+import { useState } from "react";
+import { useAccount } from "wagmi";
+import { useTournament } from "../hooks/useTournament";
+import { useBalances } from "../hooks/useBalance";
+import {
+  MIN_BET_ETH,
+  MAX_BET_ETH,
+  BET_STEP_ETH,
+  QUICK_BET_OPTIONS,
+} from "../utils/constants";
 
 export function BettingPanel() {
-  const { address } = useAccount()
-  const { startGame, isStartGamePending } = useGameContract()
-  const { formattedBalance } = useWalletBalance(address)
-  const [betAmount, setBetAmount] = useState(MIN_BET_ETH)
+  const { address } = useAccount();
+  const { startGame, isStartGamePending } = useTournament(address);
+  const { formattedWallet, canAfford } = useBalances(address);
+  const [betAmount, setBetAmount] = useState(MIN_BET_ETH);
 
   const handleStartGame = () => {
     if (betAmount > 0) {
-      startGame(betAmount)
+      startGame(betAmount);
     }
-  }
+  };
 
-  const canAffordBet = parseFloat(formattedBalance || '0') >= betAmount
+  const canAffordBet = canAfford(betAmount);
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Place Your Bet</h3>
-      
+      <h3 className="text-lg font-semibold text-gray-800 mb-4">
+        Place Your Bet
+      </h3>
+
       {/* Balance display */}
       <div className="mb-4">
-        <p className="text-sm text-gray-600">Your Balance: {formattedBalance} ETH</p>
+        <p className="text-sm text-gray-600">
+          Your Balance: {formattedWallet} ETH
+        </p>
       </div>
 
       {/* Bet amount slider */}
@@ -57,8 +66,8 @@ export function BettingPanel() {
               onClick={() => setBetAmount(option.value)}
               className={`py-2 px-3 rounded-lg border text-sm transition-colors ${
                 betAmount === option.value
-                  ? 'bg-blue-500 text-white border-blue-500'
-                  : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                  ? "bg-blue-500 text-white border-blue-500"
+                  : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
               }`}
             >
               {option.label}
@@ -73,16 +82,18 @@ export function BettingPanel() {
         disabled={!canAffordBet || isStartGamePending || !address}
         className={`w-full py-3 px-4 rounded-lg font-semibold transition-colors ${
           canAffordBet && !isStartGamePending && address
-            ? 'bg-green-500 text-white hover:bg-green-600'
-            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            ? "bg-green-500 text-white hover:bg-green-600"
+            : "bg-gray-300 text-gray-500 cursor-not-allowed"
         }`}
       >
-        {isStartGamePending ? 'Starting Game...' : `Start Game (${betAmount} ETH)`}
+        {isStartGamePending
+          ? "Starting Game..."
+          : `Start Game (${betAmount} ETH)`}
       </button>
 
       {!canAffordBet && address && (
         <p className="text-red-500 text-sm mt-2">Insufficient balance</p>
       )}
     </div>
-  )
+  );
 }

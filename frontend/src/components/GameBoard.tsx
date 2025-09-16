@@ -1,15 +1,19 @@
-import { useAccount } from 'wagmi'
-import { formatEther } from 'viem'
-import { useGameContract, useGameStatus } from '../hooks/useGameContract'
-import { MOVES, MOVE_NAMES, MOVE_EMOJIS, GAME_STATES } from '../utils/constants'
-import type { Move } from '../types/game'
+import { useAccount } from "wagmi";
+import { formatEther } from "viem";
+import { useTournament } from "../hooks/useTournament";
+import {
+  MOVES,
+  MOVE_NAMES,
+  MOVE_EMOJIS,
+  GAME_STATES,
+} from "../utils/constants";
+import type { Move } from "../types/game";
 
 export function GameBoard() {
-  const { address } = useAccount()
-  const { playRound, isPlayRoundPending } = useGameContract()
-  const { gameStatus } = useGameStatus(address)
+  const { address } = useAccount();
+  const { playRound, isPlayRoundPending, gameStatus } = useTournament(address);
 
-    console.log('GameBoard Debug:', { address, gameStatus })
+  console.log("GameBoard Debug:", { address, gameStatus });
 
   if (!gameStatus || gameStatus.state === GAME_STATES.NOT_STARTED) {
     return (
@@ -18,46 +22,63 @@ export function GameBoard() {
           <p>No active game. Start a new game to play!</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (gameStatus.state === GAME_STATES.COMPLETED) {
-    const playerWon = (gameStatus.playerWins || 0n) > (gameStatus.computerWins || 0n)
-    const computerWon = (gameStatus.computerWins || 0n) > (gameStatus.playerWins || 0n)
-    const isDraw = (gameStatus.playerWins || 0n) === (gameStatus.computerWins || 0n)
+    const playerWon =
+      (gameStatus.playerWins || 0n) > (gameStatus.computerWins || 0n);
+    const computerWon =
+      (gameStatus.computerWins || 0n) > (gameStatus.playerWins || 0n);
 
     return (
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <div className="text-center">
           <h3 className="text-xl font-bold mb-4">Game Complete!</h3>
-          <div className={`text-2xl font-bold mb-4 ${
-            playerWon ? 'text-green-600' : computerWon ? 'text-red-600' : 'text-yellow-600'
-          }`}>
-            {playerWon ? '🎉 You Won!' : computerWon ? '💻 Computer Won!' : '🤝 Draw!'}
+          <div
+            className={`text-2xl font-bold mb-4 ${
+              playerWon
+                ? "text-green-600"
+                : computerWon
+                ? "text-red-600"
+                : "text-yellow-600"
+            }`}
+          >
+            {playerWon
+              ? "🎉 You Won!"
+              : computerWon
+              ? "💻 Computer Won!"
+              : "🤝 Draw!"}
           </div>
           <div className="space-y-2 text-gray-600">
-            <p>Your Wins: {gameStatus.playerWins?.toString() || '0'}</p>
-            <p>Computer Wins: {gameStatus.computerWins?.toString() || '0'}</p>
+            <p>Your Wins: {gameStatus.playerWins?.toString() || "0"}</p>
+            <p>Computer Wins: {gameStatus.computerWins?.toString() || "0"}</p>
             <p>Total Pot: {formatEther(gameStatus.totalPot || 0n)} ETH</p>
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   // Game in progress
   const handleMoveClick = (move: Move) => {
-    playRound(move)
-  }
+    playRound(move);
+  };
 
-  const isGameComplete = (gameStatus.currentRound || 0n) >= (gameStatus.totalRounds || 0n)
+  const isGameComplete =
+    (gameStatus.currentRound || 0n) >= (gameStatus.totalRounds || 0n);
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
       <div className="text-center mb-6">
-        <h3 className="text-xl font-semibold text-gray-800 mb-2">Game in Progress</h3>
+        <h3 className="text-xl font-semibold text-gray-800 mb-2">
+          Game in Progress
+        </h3>
         <div className="flex justify-center space-x-8 text-sm text-gray-600">
-          <div>Round {gameStatus.currentRound?.toString() || '0'}/{gameStatus.totalRounds?.toString() || '0'}</div>
+          <div>
+            Round {((gameStatus.currentRound || 0n) + 1n).toString()}/
+            {gameStatus.totalRounds?.toString() || "0"}
+          </div>
           <div>Pot: {formatEther(gameStatus.totalPot || 0n)} ETH</div>
         </div>
       </div>
@@ -66,11 +87,15 @@ export function GameBoard() {
       <div className="flex justify-center space-x-8 mb-6">
         <div className="text-center">
           <p className="text-sm text-gray-600">You</p>
-          <p className="text-2xl font-bold text-green-600">{gameStatus.playerWins?.toString() || '0'}</p>
+          <p className="text-2xl font-bold text-green-600">
+            {gameStatus.playerWins?.toString() || "0"}
+          </p>
         </div>
         <div className="text-center">
           <p className="text-sm text-gray-600">Computer</p>
-          <p className="text-2xl font-bold text-red-600">{gameStatus.computerWins?.toString() || '0'}</p>
+          <p className="text-2xl font-bold text-red-600">
+            {gameStatus.computerWins?.toString() || "0"}
+          </p>
         </div>
       </div>
 
@@ -97,5 +122,5 @@ export function GameBoard() {
         </div>
       )}
     </div>
-  )
+  );
 }

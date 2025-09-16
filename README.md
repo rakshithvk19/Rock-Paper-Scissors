@@ -1,35 +1,18 @@
-# 🎮 Cross-VM Rock-Paper-Scissors Tournament
+# Cross-VM Rock-Paper-Scissors Tournament
 
-> Showcasing Fluent's revolutionary blended execution where Rust and Solidity contracts interact atomically without bridges
+A demonstration of Fluent's blended execution capabilities, showcasing direct interoperability between Rust and Solidity smart contracts without bridges or external communication protocols.
 
 [![Built on Fluent](https://img.shields.io/badge/Built%20on-Fluent-blue)](https://fluent.xyz)
 [![Solidity](https://img.shields.io/badge/Solidity-0.8.20-blue)](https://soliditylang.org)
 [![Rust](https://img.shields.io/badge/Rust-1.70+-orange)](https://rust-lang.org)
 [![React](https://img.shields.io/badge/React-18.2-blue)](https://reactjs.org)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-## 🚀 Quick Start
+## Overview
 
-### 1. Setup
-```bash
-make setup           # Install everything + create env files
-```
+This project demonstrates Fluent's revolutionary blended execution environment through a fully functional Rock-Paper-Scissors game with betting mechanics. The application showcases how Rust and Solidity contracts can interact atomically on the same blockchain, enabling developers to leverage the strengths of each language within a single application.
 
-### 2. Get Testnet Tokens
-```bash
-make get-faucet      # Visit faucet to get test ETH
-```
-
-### 3. Deploy Contracts
-```bash
-make deploy-contracts # Interactive deployment process
-```
-
-### 4. Start Playing
-```bash
-make dev             # Start frontend at localhost:3000
-```
-
-## 🏗️ Architecture
+## Architecture Overview
 
 ### Smart Contract System
 ```
@@ -43,85 +26,177 @@ Player → Solidity Tournament → Rust Computer AI → Back to Solidity
            (Computer's Money)
 ```
 
-### Component Breakdown
+### Language Selection Rationale
 
-1. **🔮 Oracle (Rust)** - Pure randomness generation
-2. **🤖 Computer AI (Rust)** - Game strategy & betting decisions  
-3. **💰 Fund Manager (Solidity)** - Manages computer's betting funds
-4. **🎮 Tournament (Solidity)** - Core game logic & payouts
-5. **⚛️ Frontend (React)** - Modern web interface
+**Rust Components:**
+- **Oracle**: Implements deterministic randomness generation using Rust's mathematical operations and type safety
+- **Computer AI**: Utilizes Rust's performance characteristics for pattern detection algorithms and strategic decision-making
 
-## 🎯 Key Features
+**Solidity Components:**
+- **Tournament**: Manages game state, player interactions, and financial transactions using Solidity's established DeFi patterns
+- **Fund Manager**: Handles ETH transfers and balance management using Solidity's mature financial contract conventions
 
-- **🎚️ Dynamic Betting** - Slider-based bet selection (0.001-0.1 ETH)
-- **🧠 Smart Computer AI** - Pattern detection & adaptive betting
-- **💸 Automatic Payouts** - Winner-takes-all or draw refunds
-- **📊 Live Statistics** - Real-time game stats and history
-- **🔗 MetaMask Integration** - Seamless wallet connection
-- **📱 Responsive Design** - Works on desktop and mobile
+**Frontend:**
+- **React Application**: Provides modern web interface with Web3 integration using wagmi and viem libraries
 
-## 🛠️ Development
+### Component Details
 
-### Available Commands
+1. **Oracle (Rust)** - Pure randomness generation using deterministic algorithms
+2. **Computer AI (Rust)** - Game strategy implementation with pattern recognition and adaptive betting logic
+3. **Fund Manager (Solidity)** - Manages computer's betting funds with owner controls and betting limits
+4. **Tournament (Solidity)** - Core game logic, state management, and payout distribution
+5. **Frontend (React)** - User interface with MetaMask integration and real-time game statistics
+
+## Key Features
+
+- **Dynamic Betting System** - Configurable bet amounts with slider interface
+- **Intelligent Computer Opponent** - Pattern detection and adaptive betting strategies
+- **Automatic Payout Distribution** - Winner-takes-all or proportional refunds for draws
+- **Real-time Game Statistics** - Live tracking of game progress and historical data
+- **MetaMask Integration** - Seamless wallet connectivity with Fluent network support
+- **Responsive Design** - Cross-platform compatibility for desktop and mobile devices
+
+## Quick Start
+
+### Prerequisites
+- Node.js (v18+)
+- Rust (1.70+)
+- Foundry
+- MetaMask or compatible wallet
+
+### Installation
 ```bash
-make help            # Show all available commands
-make build           # Build all contracts
-make test-rust       # Run Rust tests  
-make test-game       # Test deployed contracts
-make clean           # Clean build artifacts
-make info            # Show project info
+make install         # Install gblend CLI and Foundry
+make get-devnet-tokens   # Get Fluent devnet tokens
 ```
 
-### Project Structure
-```
-├── contracts/              # Solidity contracts
-├── rust-oracle/           # Randomness generation
-├── rust-computer-ai/      # AI decision making
-├── frontend/              # React web app
-├── Makefile              # Build automation
-└── gblend.config.js      # Fluent configuration
+### Contract Deployment
+```bash
+make deploy-oracle       # Deploy Rust Oracle contract
+make deploy-computer-ai  # Deploy Rust Computer AI contract
+make deploy-fund-manager # Deploy Solidity Fund Manager contract
+make deploy-tournament   # Deploy Solidity Tournament contract
 ```
 
-## 🌐 Network Details
+### Post-Deployment Setup
+```bash
+make fund-computer       # Fund computer with 0.02 ETH for betting
+make setup-game-contract # Configure Fund Manager with Tournament address
+```
+
+### Start Frontend
+```bash
+make start-frontend      # Launch development server at localhost:3000
+```
+
+## Network Configuration
 
 - **Network**: Fluent Devnet
-- **RPC**: https://rpc.dev.gblend.xyz/
+- **RPC URL**: https://rpc.dev.gblend.xyz
 - **Chain ID**: 20993
-- **Explorer**: https://blockscout.dev.gblend.xyz/
-- **Faucet**: https://faucet.dev.gblend.xyz/
+- **Explorer**: https://blockscout.dev.gblend.xyz
+- **Faucet**: https://faucet.dev.gblend.xyz
 
-## 🎮 How to Play
+## Development Commands
 
-1. **Connect Wallet** - MetaMask with Fluent network
-2. **Place Bet** - Use slider to select amount (0.001-0.1 ETH)
-3. **Start Game** - Computer will also bet automatically
-4. **Play Rounds** - Choose Rock 🪨, Paper 📄, or Scissors ✂️
-5. **Win Prize** - Winner takes the entire pot!
+```bash
+make help                    # Display all available commands
+make generate-abis           # Generate TypeScript ABI files for frontend
+make update-frontend-addresses  # Sync contract addresses to frontend
+```
 
-## 🔧 Technical Highlights
+## Project Structure
 
-### Cross-VM Innovation
-- **Direct Function Calls** between Rust and Solidity
-- **Atomic Transactions** - All operations succeed or fail together
-- **Shared State** - Unified blockchain execution environment
-- **No Bridges Required** - True real-time interaction
+```
+├── contracts/              # Solidity smart contracts
+│   ├── RPSTournament.sol   # Main game logic and state management
+│   ├── FundManager.sol     # Computer betting fund management
+│   └── interfaces/         # Contract interfaces for cross-language calls
+├── rust-oracle/           # Rust randomness generation contract
+├── rust-computer-ai/      # Rust AI decision-making contract
+├── frontend/              # React web application
+│   ├── src/components/    # React components
+│   ├── src/contracts/     # Generated TypeScript ABIs
+│   └── src/hooks/         # Web3 interaction hooks
+├── foundry.toml           # Foundry configuration
+├── Makefile              # Build and deployment automation
+└── LICENSE               # MIT License
+```
+
+## Technical Implementation
+
+### Cross-VM Communication
+
+The application demonstrates Fluent's blended execution through direct function calls between virtual machines:
+
+- **Solidity Tournament contract** calls **Rust Oracle** for randomness generation
+- **Solidity Tournament contract** calls **Rust Computer AI** for move decisions and betting advice
+- **Rust contracts** expose Solidity-compatible interfaces using `#[function_id]` attributes
+- **All interactions** occur atomically within single transactions
 
 ### Game Mechanics
-- **Random Tournament Length** - 1-10 rounds determined by Oracle
-- **Intelligent Computer** - Adaptive strategy with pattern recognition
-- **Fair Betting System** - Computer bets based on game analysis
-- **Transparent Randomness** - All random generation on-chain
 
-## 🤝 Contributing
+- **Tournament Length**: 1-10 rounds determined by Oracle randomness
+- **Betting System**: Both player and computer place bets before game starts
+- **AI Strategy**: Computer adapts betting amounts based on game analysis
+- **Payout Logic**: Winner receives entire pot, draws return original bets
+- **State Management**: Complete game state stored on-chain with move history
 
-1. Fork the repository
-2. Create a feature branch
-3. Submit a pull request
+### Financial Flow
 
-## 📄 License
+1. Player deposits ETH to Tournament contract via `startGame()`
+2. Computer AI determines bet amount through strategy algorithms
+3. Fund Manager transfers computer's ETH to Tournament contract
+4. Tournament holds complete pot during gameplay
+5. Payouts distributed based on final game results
 
-MIT License
+## Why This Architecture
 
----
+### Rust Components
 
-**Built with ❤️ using Fluent's blended execution to showcase the future of cross-VM blockchain development**
+**Oracle and Computer AI are implemented in Rust for:**
+- **Performance**: Rust's zero-cost abstractions for mathematical operations
+- **Safety**: Memory safety guarantees for complex algorithmic logic
+- **Determinism**: Predictable behavior for randomness and AI calculations
+- **Optimization**: Compiled efficiency for computational tasks
+
+### Solidity Components
+
+**Tournament and Fund Manager are implemented in Solidity for:**
+- **Financial Operations**: Established patterns for ETH transfers and wallet interactions
+- **State Management**: Mature tooling for complex state transitions and mappings
+- **Ecosystem Integration**: Direct compatibility with existing DeFi infrastructure
+- **Gas Optimization**: Well-understood gas patterns for financial contracts
+
+### Cross-VM Benefits
+
+This hybrid approach leverages the strengths of each language while maintaining atomic execution guarantees. Rust handles computational complexity while Solidity manages financial operations, all within Fluent's unified execution environment.
+
+## Testing
+
+The contracts include comprehensive testing capabilities:
+
+```bash
+# Test individual contract functions
+cast call [CONTRACT_ADDRESS] "function_name()" --rpc-url https://rpc.dev.gblend.xyz
+
+# Test cross-contract interactions
+make test-game
+```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Network Information
+
+**Fluent Devnet Configuration:**
+- RPC: https://rpc.dev.gblend.xyz
+- Chain ID: 20993
+- Explorer: https://blockscout.dev.gblend.xyz
+- Faucet: https://faucet.dev.gblend.xyz
+
+**Tools Required:**
+- gblend CLI (Rust contract deployment)
+- Foundry (Solidity contract deployment and interaction)
+- Node.js (Frontend development)
