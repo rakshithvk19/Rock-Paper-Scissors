@@ -29,15 +29,12 @@ pub trait ComputerAIAPI {
 
 #[router(mode = "solidity")]
 impl<SDK: SharedAPI> ComputerAIAPI for ComputerAI<SDK> {
+    #[function_id("get_move(uint256,uint256,uint256[])")]
     fn get_move(&self, round: U256, seed: U256, player_history: Vec<U256>) -> U256 {
-        let block_number = self.sdk.block_number();
-        let block_timestamp = self.sdk.block_timestamp();
-        
         // Simple strategy: mix randomness with basic pattern detection
-        let mut random_factor = block_number
-            .wrapping_add(block_timestamp)
-            .wrapping_add(seed)
-            .wrapping_add(round);
+        let random_factor = seed
+            .wrapping_add(round)
+            .wrapping_add(U256::from(54321));
             
         // If we have player history, add some basic counter-strategy
         if !player_history.is_empty() {
@@ -54,11 +51,10 @@ impl<SDK: SharedAPI> ComputerAIAPI for ComputerAI<SDK> {
         random_factor % U256::from(3)
     }
     
-    fn get_betting_advice(&self, player_wins: U256, computer_wins: U256, total_rounds: U256, current_round: U256) -> U256 {
+    #[function_id("get_betting_advice(uint256,uint256,uint256,uint256)")]
+    fn get_betting_advice(&self, player_wins: U256, computer_wins: U256, _total_rounds: U256, current_round: U256) -> U256 {
         // Base bet: 0.001 ETH (1000000000000000 wei)
         let base_bet = U256::from(1000000000000000u64);
-        
-        let block_timestamp = self.sdk.block_timestamp();
         
         // Calculate win percentage
         let total_played = player_wins + computer_wins;
@@ -81,14 +77,21 @@ impl<SDK: SharedAPI> ComputerAIAPI for ComputerAI<SDK> {
             return base_bet / U256::from(2);
         }
         
-        // If tied, bet base amount with slight randomness
-        let random_factor = (block_timestamp % U256::from(20)) + U256::from(90); // 90-110%
+        // If tied, bet base amount with slight randomness  
+        let random_factor = (current_round % U256::from(20)) + U256::from(90); // 90-110%
         base_bet * random_factor / U256::from(100)
     }
     
+    #[function_id("get_difficulty()")]
     fn get_difficulty(&self) -> U256 {
         // Return 1 for Medium difficulty
         U256::from(1)
+    }
+}
+
+impl<SDK: SharedAPI> ComputerAI<SDK> {
+    fn deploy(&mut self) {
+        // Custom deployment logic can be added here
     }
 }
 

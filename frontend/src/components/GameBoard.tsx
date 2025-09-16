@@ -9,6 +9,8 @@ export function GameBoard() {
   const { playRound, isPlayRoundPending } = useGameContract()
   const { gameStatus } = useGameStatus(address)
 
+    console.log('GameBoard Debug:', { address, gameStatus })
+
   if (!gameStatus || gameStatus.state === GAME_STATES.NOT_STARTED) {
     return (
       <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -20,9 +22,9 @@ export function GameBoard() {
   }
 
   if (gameStatus.state === GAME_STATES.COMPLETED) {
-    const playerWon = gameStatus.playerWins > gameStatus.computerWins
-    const computerWon = gameStatus.computerWins > gameStatus.playerWins
-    const isDraw = gameStatus.playerWins === gameStatus.computerWins
+    const playerWon = (gameStatus.playerWins || 0n) > (gameStatus.computerWins || 0n)
+    const computerWon = (gameStatus.computerWins || 0n) > (gameStatus.playerWins || 0n)
+    const isDraw = (gameStatus.playerWins || 0n) === (gameStatus.computerWins || 0n)
 
     return (
       <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -34,9 +36,9 @@ export function GameBoard() {
             {playerWon ? '🎉 You Won!' : computerWon ? '💻 Computer Won!' : '🤝 Draw!'}
           </div>
           <div className="space-y-2 text-gray-600">
-            <p>Your Wins: {gameStatus.playerWins.toString()}</p>
-            <p>Computer Wins: {gameStatus.computerWins.toString()}</p>
-            <p>Total Pot: {formatEther(gameStatus.totalPot)} ETH</p>
+            <p>Your Wins: {gameStatus.playerWins?.toString() || '0'}</p>
+            <p>Computer Wins: {gameStatus.computerWins?.toString() || '0'}</p>
+            <p>Total Pot: {formatEther(gameStatus.totalPot || 0n)} ETH</p>
           </div>
         </div>
       </div>
@@ -48,15 +50,15 @@ export function GameBoard() {
     playRound(move)
   }
 
-  const isGameComplete = gameStatus.currentRound >= gameStatus.totalRounds
+  const isGameComplete = (gameStatus.currentRound || 0n) >= (gameStatus.totalRounds || 0n)
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
       <div className="text-center mb-6">
         <h3 className="text-xl font-semibold text-gray-800 mb-2">Game in Progress</h3>
         <div className="flex justify-center space-x-8 text-sm text-gray-600">
-          <div>Round {gameStatus.currentRound.toString()}/{gameStatus.totalRounds.toString()}</div>
-          <div>Pot: {formatEther(gameStatus.totalPot)} ETH</div>
+          <div>Round {gameStatus.currentRound?.toString() || '0'}/{gameStatus.totalRounds?.toString() || '0'}</div>
+          <div>Pot: {formatEther(gameStatus.totalPot || 0n)} ETH</div>
         </div>
       </div>
 
@@ -64,11 +66,11 @@ export function GameBoard() {
       <div className="flex justify-center space-x-8 mb-6">
         <div className="text-center">
           <p className="text-sm text-gray-600">You</p>
-          <p className="text-2xl font-bold text-green-600">{gameStatus.playerWins.toString()}</p>
+          <p className="text-2xl font-bold text-green-600">{gameStatus.playerWins?.toString() || '0'}</p>
         </div>
         <div className="text-center">
           <p className="text-sm text-gray-600">Computer</p>
-          <p className="text-2xl font-bold text-red-600">{gameStatus.computerWins.toString()}</p>
+          <p className="text-2xl font-bold text-red-600">{gameStatus.computerWins?.toString() || '0'}</p>
         </div>
       </div>
 

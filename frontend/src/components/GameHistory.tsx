@@ -6,7 +6,8 @@ export function GameHistory() {
   const { address } = useAccount()
   const { moveHistory } = useGameHistory(address)
 
-  if (!moveHistory || moveHistory.playerMoves.length === 0) {
+  // Better safety checks
+  if (!moveHistory || !moveHistory.playerMoves || !moveHistory.computerMoves || moveHistory.playerMoves.length === 0) {
     return (
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Game History</h3>

@@ -28,10 +28,10 @@ export const FLUENT_EXPLORER_URL = 'https://blockscout.dev.gblend.xyz/';
 
 // Put actual deployed addresses here
 export const CONTRACT_ADDRESSES = {
-  ORACLE: '0x742d35Cc6634C0532925a3b8D54321B0a8Bc9b12', 
-  COMPUTER_AI: '0x8ba1f109551bD432803012645Hac136c63F50429',
-  FUND_MANAGER: '0xa0b86991c431e607f6f4c9cfe3b06f76e3fe1f50a',
-  TOURNAMENT: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+  ORACLE: import.meta.env.VITE_ORACLE_ADDRESS || '',
+  COMPUTER_AI: import.meta.env.VITE_COMPUTER_AI_ADDRESS || '',
+  FUND_MANAGER: import.meta.env.VITE_FUND_MANAGER_ADDRESS || '',
+  TOURNAMENT: import.meta.env.VITE_TOURNAMENT_ADDRESS || '',
 };
 
 // Game state constants

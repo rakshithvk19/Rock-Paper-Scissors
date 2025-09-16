@@ -6,7 +6,7 @@ export function useWalletBalance(address: `0x${string}` | undefined) {
     address,
     query: {
       enabled: !!address,
-      refetchInterval: 5000, // Poll every 5 seconds
+      refetchInterval: 15000, // Poll every 15 seconds
     },
   })
 

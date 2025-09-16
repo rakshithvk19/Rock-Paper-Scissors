@@ -16,7 +16,7 @@ export function BettingPanel() {
     }
   }
 
-  const canAffordBet = parseFloat(formattedBalance) >= betAmount
+  const canAffordBet = parseFloat(formattedBalance || '0') >= betAmount
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">

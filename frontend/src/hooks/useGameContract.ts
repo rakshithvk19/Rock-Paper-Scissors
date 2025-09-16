@@ -14,6 +14,7 @@ export function useGameContract() {
       abi: RPSTournamentABI,
       functionName: 'startGame',
       value: parseEther(betAmount.toString()),
+      gas: BigInt(500000), 
     })
   }
 
@@ -43,6 +44,9 @@ export function useGameContract() {
 }
 
 export function useGameStatus(playerAddress: `0x${string}` | undefined) {
+
+    console.log('useGameStatus params:', { playerAddress, tournamentAddress: CONTRACT_ADDRESSES.TOURNAMENT })
+
   const { data: gameStatus, refetch } = useReadContract({
     address: CONTRACT_ADDRESSES.TOURNAMENT as `0x${string}`,
     abi: RPSTournamentABI,
@@ -50,14 +54,32 @@ export function useGameStatus(playerAddress: `0x${string}` | undefined) {
     args: playerAddress ? [playerAddress] : undefined,
     query: {
       enabled: !!playerAddress,
-      refetchInterval: 2000, // Poll every 2 seconds
+      refetchInterval: 10000, // Poll every 10 seconds
     },
   })
 
+    console.log('useGameStatus result:', gameStatus)
+
+
+  // return {
+  //   gameStatus: gameStatus as GameStatus | undefined,
+  //   refetchGameStatus: refetch,
+  // }
+
   return {
-    gameStatus: gameStatus as GameStatus | undefined,
-    refetchGameStatus: refetch,
-  }
+  gameStatus: gameStatus ? {
+    state: gameStatus[0],
+    totalRounds: gameStatus[1], 
+    currentRound: gameStatus[2],
+    playerWins: gameStatus[3],
+    computerWins: gameStatus[4],
+    playerBet: gameStatus[5],
+    computerBet: gameStatus[6], 
+    totalPot: gameStatus[7],
+  } as GameStatus : undefined,
+      refetchGameStatus: refetch,
+
+}
 }
 
 export function useGameHistory(playerAddress: `0x${string}` | undefined) {
@@ -82,7 +104,7 @@ export function useComputerBalance() {
     abi: FundManagerABI,
     functionName: 'get_computer_balance',
     query: {
-      refetchInterval: 5000, // Poll every 5 seconds
+      refetchInterval: 15000, // Poll every 15 seconds
     },
   })
 

@@ -31,7 +31,7 @@ export function GameStats() {
         <div className="pt-4 border-t border-gray-100">
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-500">Network:</span>
-            <span className="text-gray-700">Fluent Testnet</span>
+            <span className="text-gray-700">Fluent Devnet</span>
           </div>
         </div>
       </div>
