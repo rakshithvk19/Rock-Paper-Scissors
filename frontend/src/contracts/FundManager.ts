@@ -1,259 +1,221 @@
-export const FundManagerABI = 
-[
+export const FundManagerABI = [
+  { type: "constructor", inputs: [], stateMutability: "payable" },
+  { type: "receive", stateMutability: "payable" },
   {
-    "type": "constructor",
-    "inputs": [],
-    "stateMutability": "nonpayable"
+    type: "function",
+    name: "addWinnings",
+    inputs: [{ name: "amount", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "payable",
   },
   {
-    "type": "receive",
-    "stateMutability": "payable"
+    type: "function",
+    name: "can_afford_bet",
+    inputs: [{ name: "amount", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
   },
   {
-    "type": "function",
-    "name": "addWinnings",
-    "inputs": [
-      {
-        "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
+    type: "function",
+    name: "computer_bet",
+    inputs: [{ name: "amount", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "success", type: "bool", internalType: "bool" }],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "depositFunds",
+    inputs: [],
+    outputs: [],
+    stateMutability: "payable",
+  },
+  {
+    type: "function",
+    name: "emergencyWithdraw",
+    inputs: [],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "gameContract",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "get_computer_balance",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "get_max_bet_limit",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "maxBetLimit",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "owner",
+    inputs: [],
+    outputs: [{ name: "", type: "address", internalType: "address" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "setGameContract",
+    inputs: [
+      { name: "_gameContract", type: "address", internalType: "address" },
     ],
-    "outputs": [],
-    "stateMutability": "payable"
+    outputs: [],
+    stateMutability: "payable",
   },
   {
-    "type": "function",
-    "name": "can_afford_bet",
-    "inputs": [
-      {
-        "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
+    type: "function",
+    name: "setMaxBetLimit",
+    inputs: [
+      { name: "_maxBetLimit", type: "uint256", internalType: "uint256" },
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
-    "type": "function",
-    "name": "computerBalance",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
+    type: "function",
+    name: "withdrawFunds",
+    inputs: [{ name: "amount", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
-    "type": "function",
-    "name": "computer_bet",
-    "inputs": [
+    type: "event",
+    name: "BetPlaced",
+    inputs: [
       {
-        "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
       {
-        "name": "success",
-        "type": "bool",
-        "internalType": "bool"
-      }
+        name: "remainingBalance",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
     ],
-    "stateMutability": "nonpayable"
+    anonymous: false,
   },
   {
-    "type": "function",
-    "name": "depositFunds",
-    "inputs": [],
-    "outputs": [],
-    "stateMutability": "payable"
-  },
-  {
-    "type": "function",
-    "name": "emergencyWithdraw",
-    "inputs": [],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "gameContract",
-    "inputs": [],
-    "outputs": [
+    type: "event",
+    name: "FundsDeposited",
+    inputs: [
       {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "newBalance",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
     ],
-    "stateMutability": "view"
+    anonymous: false,
   },
   {
-    "type": "function",
-    "name": "get_computer_balance",
-    "inputs": [],
-    "outputs": [
+    type: "event",
+    name: "FundsWithdrawn",
+    inputs: [
       {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "newBalance",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
     ],
-    "stateMutability": "view"
+    anonymous: false,
   },
   {
-    "type": "function",
-    "name": "get_max_bet_limit",
-    "inputs": [],
-    "outputs": [
+    type: "event",
+    name: "GameContractUpdated",
+    inputs: [
       {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
+        name: "oldContract",
+        type: "address",
+        indexed: false,
+        internalType: "address",
+      },
+      {
+        name: "newContract",
+        type: "address",
+        indexed: false,
+        internalType: "address",
+      },
     ],
-    "stateMutability": "view"
+    anonymous: false,
   },
   {
-    "type": "function",
-    "name": "maxBetLimit",
-    "inputs": [],
-    "outputs": [
+    type: "event",
+    name: "MaxBetLimitUpdated",
+    inputs: [
       {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
+        name: "oldLimit",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "newLimit",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
     ],
-    "stateMutability": "view"
+    anonymous: false,
   },
   {
-    "type": "function",
-    "name": "owner",
-    "inputs": [],
-    "outputs": [
+    type: "event",
+    name: "WinningsAdded",
+    inputs: [
       {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
+        name: "amount",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "newBalance",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
     ],
-    "stateMutability": "view"
+    anonymous: false,
   },
-  {
-    "type": "function",
-    "name": "setGameContract",
-    "inputs": [
-      {
-        "name": "_gameContract",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setMaxBetLimit",
-    "inputs": [
-      {
-        "name": "_maxBetLimit",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "withdrawFunds",
-    "inputs": [
-      {
-        "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "event",
-    "name": "BetPlaced",
-    "inputs": [
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "FundsDeposited",
-    "inputs": [
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "FundsWithdrawn",
-    "inputs": [
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "GameContractUpdated",
-    "inputs": [
-      {
-        "name": "newContract",
-        "type": "address",
-        "indexed": false,
-        "internalType": "address"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "MaxBetLimitUpdated",
-    "inputs": [
-      {
-        "name": "newLimit",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  }
-]as const;
+  { type: "error", name: "BetExceedsLimit", inputs: [] },
+  { type: "error", name: "EthAmountMismatch", inputs: [] },
+  { type: "error", name: "InsufficientBalance", inputs: [] },
+  { type: "error", name: "InvalidBetLimit", inputs: [] },
+  { type: "error", name: "InvalidGameContract", inputs: [] },
+  { type: "error", name: "OnlyGameContract", inputs: [] },
+  { type: "error", name: "OnlyOwner", inputs: [] },
+  { type: "error", name: "TransferFailed", inputs: [] },
+] as const;

@@ -5,25 +5,55 @@ use alloc::vec::Vec;
 use fluentbase_sdk::{
     basic_entrypoint,
     derive::{router, Contract},
-    SharedAPI,
-    U256,
+    SharedAPI, U256,
 };
 
-/// Computer AI for Rock-Paper-Scissors decision making
+/**
+ * @title ComputerAI  
+ * @notice Strategic AI for Rock-Paper-Scissors with pattern detection and adaptive betting
+ * @dev Implements betting strategy and move selection algorithms with pattern recognition
+ * @author rakshithvk19
+ * @custom:security AI decisions are deterministic based on game state and randomness
+ */
 #[derive(Contract)]
 struct ComputerAI<SDK> {
     sdk: SDK,
 }
 
-/// API for computer AI decision making
+/**
+ * @title ComputerAIAPI
+ * @notice Interface for computer AI decision making in Rock-Paper-Scissors
+ */
 pub trait ComputerAIAPI {
-    /// Get computer's move for current round
+    /**
+     * @notice Get computer's move for current round
+     * @param round Current round number (0-indexed)
+     * @param seed Game seed for consistency and randomness
+     * @param player_history Array of player's previous moves (0=Rock, 1=Paper, 2=Scissors)
+     * @return move Computer's move choice (0=Rock, 1=Paper, 2=Scissors)
+     */
     fn get_move(&self, round: U256, seed: U256, player_history: Vec<U256>) -> U256;
-    
-    /// Get computer's betting recommendation  
-    fn get_betting_advice(&self, player_wins: U256, computer_wins: U256, total_rounds: U256, current_round: U256) -> U256;
-    
-    /// Get AI difficulty level
+
+    /**
+     * @notice Get computer's betting recommendation based on game analysis
+     * @param player_wins Player's current wins in the game
+     * @param computer_wins Computer's current wins in the game  
+     * @param total_rounds Total number of rounds in this game
+     * @param current_round Current round number (0-indexed)
+     * @return bet_amount Suggested bet amount in wei
+     */
+    fn get_betting_advice(
+        &self,
+        player_wins: U256,
+        computer_wins: U256,
+        total_rounds: U256,
+        current_round: U256,
+    ) -> U256;
+
+    /**
+     * @notice Get AI difficulty level
+     * @return difficulty Difficulty level (0=Easy, 1=Medium, 2=Hard)
+     */
     fn get_difficulty(&self) -> U256;
 }
 
@@ -31,67 +61,88 @@ pub trait ComputerAIAPI {
 impl<SDK: SharedAPI> ComputerAIAPI for ComputerAI<SDK> {
     #[function_id("get_move(uint256,uint256,uint256[])")]
     fn get_move(&self, round: U256, seed: U256, player_history: Vec<U256>) -> U256 {
-        // Simple strategy: mix randomness with basic pattern detection
+        // Create base randomness from round and seed
         let random_factor = seed
-            .wrapping_add(round)
-            .wrapping_add(U256::from(54321));
-            
-        // If we have player history, add some basic counter-strategy
+            .wrapping_add(round.wrapping_mul(U256::from(7)))  // Round-based variation
+            .wrapping_mul(U256::from(7919))                   // Prime multiplication
+            ^ U256::from(54321); // XOR for mixing
+
+        // Strategic pattern detection
         if !player_history.is_empty() {
             let last_move = player_history[player_history.len() - 1];
-            
-            // Simple counter-strategy: 30% chance to counter the last move
-            if (random_factor % U256::from(10)) < U256::from(3) {
-                // Counter the last move: Rock->Paper, Paper->Scissors, Scissors->Rock
+
+            // Counter-strategy: 40% chance to beat last move
+            if (random_factor % U256::from(10)) < U256::from(4) {
+                // Rock(0)->Paper(1), Paper(1)->Scissors(2), Scissors(2)->Rock(0)
                 return (last_move + U256::from(1)) % U256::from(3);
             }
+
+            // Repetition detection: counter repeated moves
+            if player_history.len() >= 2 {
+                let second_last = player_history[player_history.len() - 2];
+                if last_move == second_last && (random_factor % U256::from(10)) < U256::from(3) {
+                    return (last_move + U256::from(1)) % U256::from(3);
+                }
+            }
         }
-        
-        // Otherwise, return random move (0=Rock, 1=Paper, 2=Scissors)
+
+        // Default random move
         random_factor % U256::from(3)
     }
-    
+
     #[function_id("get_betting_advice(uint256,uint256,uint256,uint256)")]
-    fn get_betting_advice(&self, player_wins: U256, computer_wins: U256, _total_rounds: U256, current_round: U256) -> U256 {
-        // Base bet: 0.001 ETH (1000000000000000 wei)
+    fn get_betting_advice(
+        &self,
+        player_wins: U256,
+        computer_wins: U256,
+        _total_rounds: U256,
+        current_round: U256,
+    ) -> U256 {
+        // Base betting amount: 0.001 ETH
         let base_bet = U256::from(1000000000000000u64);
-        
-        // Calculate win percentage
         let total_played = player_wins + computer_wins;
-        
+
+        // Initial game strategy
         if total_played == U256::from(0) {
-            return base_bet; // First round, bet base amount
+            return base_bet;
         }
-        
-        // If computer is winning, bet more (up to 3x)
+
+        // Aggressive strategy when winning
         if computer_wins > player_wins {
             let advantage = computer_wins - player_wins;
-            let multiplier = U256::from(1) + (advantage * U256::from(2) / total_played);
-            let max_multiplier = U256::from(3);
-            let final_multiplier = if multiplier > max_multiplier { max_multiplier } else { multiplier };
-            return base_bet * final_multiplier;
+            let multiplier = U256::from(1)
+                + (advantage * U256::from(2) / U256::max(total_played, U256::from(1)));
+            let capped_multiplier = if multiplier > U256::from(3) {
+                U256::from(3)
+            } else {
+                multiplier
+            };
+            return base_bet * capped_multiplier;
         }
-        
-        // If computer is losing, bet conservatively (0.5x to 1x)
+
+        // Conservative strategy when losing
         if player_wins > computer_wins {
             return base_bet / U256::from(2);
         }
-        
-        // If tied, bet base amount with slight randomness  
-        let random_factor = (current_round % U256::from(20)) + U256::from(90); // 90-110%
-        base_bet * random_factor / U256::from(100)
+
+        // Even game: add slight variation
+        let variation = (current_round % U256::from(20)) + U256::from(90); // 90-110%
+        base_bet * variation / U256::from(100)
     }
-    
+
     #[function_id("get_difficulty()")]
     fn get_difficulty(&self) -> U256 {
-        // Return 1 for Medium difficulty
-        U256::from(1)
+        U256::from(1) // Medium difficulty
     }
 }
 
 impl<SDK: SharedAPI> ComputerAI<SDK> {
+    /**
+     * @notice Contract deployment initialization
+     * @dev Called once during contract deployment
+     */
     fn deploy(&mut self) {
-        // Custom deployment logic can be added here
+        // AI parameters could be initialized here if needed
     }
 }
 

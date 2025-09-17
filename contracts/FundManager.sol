@@ -3,114 +3,270 @@ pragma solidity ^0.8.20;
 
 import "./interfaces/IFundManager.sol";
 
-/// @title FundManager
-/// @notice Manages computer's betting funds and limits
+/**
+ * @title FundManager
+ * @notice Manages computer AI's betting funds with security controls and limits
+ * @dev Serves as the computer's "bank account" for tournament betting
+ * @author rakshithvk19
+ * @custom:security-contact security@fluent.xyz
+ */
 contract FundManager is IFundManager {
-    address public owner;
+    // ============ CUSTOM ERRORS ============
+
+    /// @notice Thrown when non-owner attempts owner-only function
+    error OnlyOwner();
+
+    /// @notice Thrown when non-game contract attempts game-only function
+    error OnlyGameContract();
+
+    /// @notice Thrown when trying to withdraw more than available balance
+    error InsufficientBalance();
+
+    /// @notice Thrown when bet amount exceeds maximum limit
+    error BetExceedsLimit();
+
+    /// @notice Thrown when ETH transfer fails
+    error TransferFailed();
+
+    /// @notice Thrown when addWinnings ETH amount doesn't match parameter
+    error EthAmountMismatch();
+
+    /// @notice Thrown when setting invalid max bet limit (0)
+    error InvalidBetLimit();
+
+    /// @notice Thrown when setting invalid game contract (zero address)
+    error InvalidGameContract();
+
+    // ============ STATE VARIABLES ============
+
+    /// @notice Contract owner (deployer) - has administrative control
+    address public immutable owner;
+
+    /// @notice Authorized game contract address - can place bets and add winnings
     address public gameContract;
-    uint256 public computerBalance;
+
+    /// @notice Maximum bet amount per game (risk management)
     uint256 public maxBetLimit;
 
-    event FundsDeposited(uint256 amount);
-    event FundsWithdrawn(uint256 amount);
-    event BetPlaced(uint256 amount);
-    event MaxBetLimitUpdated(uint256 newLimit);
-    event GameContractUpdated(address newContract);
+    // ============ EVENTS ============
 
+    /**
+     * @notice Emitted when funds are deposited to computer's balance
+     * @param amount Amount deposited in wei
+     * @param newBalance New total balance after deposit
+     */
+    event FundsDeposited(uint256 amount, uint256 newBalance);
+
+    /**
+     * @notice Emitted when funds are withdrawn from computer's balance
+     * @param amount Amount withdrawn in wei
+     * @param newBalance New total balance after withdrawal
+     */
+    event FundsWithdrawn(uint256 amount, uint256 newBalance);
+
+    /**
+     * @notice Emitted when computer places a bet
+     * @param amount Amount bet in wei
+     * @param remainingBalance Remaining balance after bet
+     */
+    event BetPlaced(uint256 amount, uint256 remainingBalance);
+
+    /**
+     * @notice Emitted when computer receives winnings
+     * @param amount Winnings amount in wei
+     * @param newBalance New total balance including winnings
+     */
+    event WinningsAdded(uint256 amount, uint256 newBalance);
+
+    /**
+     * @notice Emitted when maximum bet limit is updated
+     * @param oldLimit Previous bet limit
+     * @param newLimit New bet limit
+     */
+    event MaxBetLimitUpdated(uint256 oldLimit, uint256 newLimit);
+
+    /**
+     * @notice Emitted when game contract address is updated
+     * @param oldContract Previous game contract (zero if first time)
+     * @param newContract New authorized game contract
+     */
+    event GameContractUpdated(address oldContract, address newContract);
+
+    // ============ MODIFIERS ============
+
+    /**
+     * @notice Restricts function access to contract owner only
+     */
     modifier onlyOwner() {
-        require(msg.sender == owner, "Only owner");
+        if (msg.sender != owner) revert OnlyOwner();
         _;
     }
 
-    modifier onlyGame() {
-        require(msg.sender == gameContract, "Only game contract");
+    /**
+     * @notice Restricts function access to authorized game contract only
+     */
+    modifier onlyGameContract() {
+        if (msg.sender != gameContract) revert OnlyGameContract();
         _;
     }
 
-    constructor() {
+    /**
+     * @notice Validates that contract has sufficient balance for operation
+     * @param amount Amount to validate against balance
+     */
+    modifier hasSufficientBalance(uint256 amount) {
+        if (amount > address(this).balance) revert InsufficientBalance();
+        _;
+    }
+
+    // ============ CONSTRUCTOR ============
+
+    /**
+     * @notice Deploy FundManager with initial configuration
+     * @dev Sets deployer as owner, initializes with sent ETH, sets default bet limit
+     * @custom:param msg.value Initial funding for computer (recommended: 0.02 ETH)
+     */
+    constructor() payable {
         owner = msg.sender;
-        maxBetLimit = 0.01 ether; // Default max bet
+        maxBetLimit = 0.01 ether; // Conservative default limit
+
+        if (msg.value > 0) {
+            emit FundsDeposited(msg.value, msg.value);
+        }
     }
 
-    /// @notice Deposit funds for computer betting
-    function depositFunds() external payable onlyOwner {
-        computerBalance += msg.value;
-        emit FundsDeposited(msg.value);
-    }
+    // ============ EXTERNAL FUNCTIONS ============
 
-    /// @notice Withdraw funds from computer balance
-    /// @param amount Amount to withdraw
-    function withdrawFunds(uint256 amount) external onlyOwner {
-        require(amount <= computerBalance, "Insufficient balance");
-        computerBalance -= amount;
-        payable(owner).transfer(amount);
-        emit FundsWithdrawn(amount);
-    }
-
-    /// @notice Set the game contract address
-    /// @param _gameContract Address of the game contract
-    function setGameContract(address _gameContract) external onlyOwner {
-        gameContract = _gameContract;
-        emit GameContractUpdated(_gameContract);
-    }
-
-    /// @notice Set maximum bet limit
-    /// @param _maxBetLimit New maximum bet limit
-    function setMaxBetLimit(uint256 _maxBetLimit) external onlyOwner {
-        maxBetLimit = _maxBetLimit;
-        emit MaxBetLimitUpdated(_maxBetLimit);
-    }
-
-    /// @notice Place a bet for the computer
-    /// @param amount Bet amount in wei
-    /// @return success Whether bet was placed successfully
-    function computer_bet(uint256 amount) external onlyGame returns (bool success) {
-        if (amount > computerBalance || amount > maxBetLimit) {
-            return false;
+    /**
+     * @inheritdoc IFundManager
+     */
+    function computer_bet(
+        uint256 amount
+    ) external override onlyGameContract returns (bool success) {
+        // Validate bet amount
+        if (amount > maxBetLimit) {
+            return false; // Exceeds betting limit
+        }
+        if (amount > address(this).balance) {
+            return false; // Insufficient funds
         }
 
-        computerBalance -= amount;
-        payable(msg.sender).transfer(amount);
-        emit BetPlaced(amount);
+        // Transfer bet amount to game contract
+        (bool transferSuccess, ) = payable(msg.sender).call{value: amount}("");
+        if (!transferSuccess) {
+            return false; // Transfer failed
+        }
+
+        emit BetPlaced(amount, address(this).balance);
         return true;
     }
 
-    /// @notice Get computer's current balance
-    /// @return Current balance in wei
-    function get_computer_balance() external view returns (uint256) {
-        return computerBalance;
+    /**
+     * @inheritdoc IFundManager
+     */
+    function get_computer_balance() external view override returns (uint256) {
+        return address(this).balance;
     }
 
-    /// @notice Get maximum bet limit
-    /// @return Maximum allowed bet amount
-    function get_max_bet_limit() external view returns (uint256) {
+    /**
+     * @inheritdoc IFundManager
+     */
+    function get_max_bet_limit() external view override returns (uint256) {
         return maxBetLimit;
     }
 
-    /// @notice Check if computer can afford a bet
-    /// @param amount Bet amount to check
-    /// @return Whether computer can afford the bet
-    function can_afford_bet(uint256 amount) external view returns (bool) {
-        return amount <= computerBalance && amount <= maxBetLimit;
+    /**
+     * @inheritdoc IFundManager
+     */
+    function can_afford_bet(
+        uint256 amount
+    ) external view override returns (bool) {
+        return amount <= address(this).balance && amount <= maxBetLimit;
     }
 
-    /// @notice Add winnings to computer balance
-    /// @param amount Winning amount to add
-    function addWinnings(uint256 amount) external payable onlyGame {
-        require(msg.value == amount, "ETH amount mismatch");
-        computerBalance += amount;
+    /**
+     * @inheritdoc IFundManager
+     */
+    function addWinnings(
+        uint256 amount
+    ) external payable override onlyGameContract {
+        if (msg.value != amount) revert EthAmountMismatch();
+
+        emit WinningsAdded(amount, address(this).balance);
     }
 
-    /// @notice Emergency withdraw all funds
-    function emergencyWithdraw() external onlyOwner {
-        uint256 amount = computerBalance;
-        computerBalance = 0;
-        payable(owner).transfer(amount);
-        emit FundsWithdrawn(amount);
+    /**
+     * @inheritdoc IFundManager
+     */
+    function depositFunds() external payable override onlyOwner {
+        if (msg.value == 0) revert InsufficientBalance();
+
+        emit FundsDeposited(msg.value, address(this).balance);
     }
 
-    /// @notice Allow contract to receive ETH
+    /**
+     * @inheritdoc IFundManager
+     */
+    function withdrawFunds(
+        uint256 amount
+    ) external override onlyOwner hasSufficientBalance(amount) {
+        (bool success, ) = payable(owner).call{value: amount}("");
+        if (!success) revert TransferFailed();
+
+        emit FundsWithdrawn(amount, address(this).balance);
+    }
+
+    /**
+     * @inheritdoc IFundManager
+     */
+    function setGameContract(
+        address _gameContract
+    ) external payable override onlyOwner {
+        if (_gameContract == address(0)) revert InvalidGameContract();
+
+        address oldContract = gameContract;
+        gameContract = _gameContract;
+
+        // Handle optional funding
+        if (msg.value > 0) {
+            emit FundsDeposited(msg.value, address(this).balance);
+        }
+
+        emit GameContractUpdated(oldContract, _gameContract);
+    }
+
+    /**
+     * @inheritdoc IFundManager
+     */
+    function setMaxBetLimit(uint256 _maxBetLimit) external override onlyOwner {
+        if (_maxBetLimit == 0) revert InvalidBetLimit();
+
+        uint256 oldLimit = maxBetLimit;
+        maxBetLimit = _maxBetLimit;
+
+        emit MaxBetLimitUpdated(oldLimit, _maxBetLimit);
+    }
+
+    /**
+     * @inheritdoc IFundManager
+     */
+    function emergencyWithdraw() external override onlyOwner {
+        uint256 amount = address(this).balance;
+        if (amount == 0) revert InsufficientBalance();
+
+        (bool success, ) = payable(owner).call{value: amount}("");
+        if (!success) revert TransferFailed();
+
+        emit FundsWithdrawn(amount, 0);
+    }
+
+    // ============ RECEIVE FUNCTION ============
+
+    /**
+     * @notice Allow contract to receive ETH from external sources
+     * @dev ETH sent directly increases computer's available balance
+     */
     receive() external payable {
-        // Contract can receive ETH from various sources
+        emit FundsDeposited(msg.value, address(this).balance);
     }
 }

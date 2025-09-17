@@ -1,328 +1,220 @@
-export const RPSTournamentABI = 
-[
+export const RPSTournamentABI = [
   {
-    "type": "constructor",
-    "inputs": [
-      {
-        "name": "_oracle",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "_computerAI",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "_fundManager",
-        "type": "address",
-        "internalType": "address"
-      }
+    type: "constructor",
+    inputs: [
+      { name: "_oracle", type: "address", internalType: "address" },
+      { name: "_computerAI", type: "address", internalType: "address" },
+      { name: "_fundManager", type: "address", internalType: "address" },
     ],
-    "stateMutability": "nonpayable"
+    stateMutability: "nonpayable",
+  },
+  { type: "receive", stateMutability: "payable" },
+  {
+    type: "function",
+    name: "computerAI",
+    inputs: [],
+    outputs: [
+      { name: "", type: "address", internalType: "contract IComputerAI" },
+    ],
+    stateMutability: "view",
   },
   {
-    "type": "receive",
-    "stateMutability": "payable"
+    type: "function",
+    name: "fundManager",
+    inputs: [],
+    outputs: [
+      { name: "", type: "address", internalType: "contract IFundManager" },
+    ],
+    stateMutability: "view",
   },
   {
-    "type": "function",
-    "name": "computerAI",
-    "inputs": [],
-    "outputs": [
+    type: "function",
+    name: "games",
+    inputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [
+      { name: "totalRounds", type: "uint256", internalType: "uint256" },
+      { name: "currentRound", type: "uint256", internalType: "uint256" },
+      { name: "playerWins", type: "uint256", internalType: "uint256" },
+      { name: "computerWins", type: "uint256", internalType: "uint256" },
       {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IComputerAI"
-      }
+        name: "state",
+        type: "uint8",
+        internalType: "enum IRPSTournament.GameState",
+      },
+      { name: "gameSeed", type: "uint256", internalType: "uint256" },
+      { name: "playerBet", type: "uint256", internalType: "uint256" },
+      { name: "computerBet", type: "uint256", internalType: "uint256" },
     ],
-    "stateMutability": "view"
+    stateMutability: "view",
   },
   {
-    "type": "function",
-    "name": "fundManager",
-    "inputs": [],
-    "outputs": [
+    type: "function",
+    name: "getGameStatus",
+    inputs: [{ name: "player", type: "address", internalType: "address" }],
+    outputs: [
       {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IFundManager"
-      }
+        name: "state",
+        type: "uint8",
+        internalType: "enum IRPSTournament.GameState",
+      },
+      { name: "totalRounds", type: "uint256", internalType: "uint256" },
+      { name: "currentRound", type: "uint256", internalType: "uint256" },
+      { name: "playerWins", type: "uint256", internalType: "uint256" },
+      { name: "computerWins", type: "uint256", internalType: "uint256" },
+      { name: "playerBet", type: "uint256", internalType: "uint256" },
+      { name: "computerBet", type: "uint256", internalType: "uint256" },
+      { name: "totalPot", type: "uint256", internalType: "uint256" },
     ],
-    "stateMutability": "view"
+    stateMutability: "view",
   },
   {
-    "type": "function",
-    "name": "games",
-    "inputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
+    type: "function",
+    name: "getMoveHistory",
+    inputs: [{ name: "", type: "address", internalType: "address" }],
+    outputs: [
+      { name: "playerMoves", type: "uint256[]", internalType: "uint256[]" },
+      { name: "computerMoves", type: "uint256[]", internalType: "uint256[]" },
     ],
-    "outputs": [
-      {
-        "name": "player",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "totalRounds",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "currentRound",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "playerWins",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "computerWins",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "state",
-        "type": "uint8",
-        "internalType": "enum RPSTournament.GameState"
-      },
-      {
-        "name": "gameSeed",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "playerBet",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "computerBet",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "totalPot",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
+    stateMutability: "pure",
   },
   {
-    "type": "function",
-    "name": "getGameStatus",
-    "inputs": [
-      {
-        "name": "player",
-        "type": "address",
-        "internalType": "address"
-      }
+    type: "function",
+    name: "oracle",
+    inputs: [],
+    outputs: [
+      { name: "", type: "address", internalType: "contract IRandomOracle" },
     ],
-    "outputs": [
-      {
-        "name": "state",
-        "type": "uint8",
-        "internalType": "enum RPSTournament.GameState"
-      },
-      {
-        "name": "totalRounds",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "currentRound",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "playerWins",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "computerWins",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "playerBet",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "computerBet",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "totalPot",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
+    stateMutability: "view",
   },
   {
-    "type": "function",
-    "name": "getMoveHistory",
-    "inputs": [
+    type: "function",
+    name: "playRound",
+    inputs: [
       {
-        "name": "player",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "playerMoves",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
+        name: "playerMove",
+        type: "uint8",
+        internalType: "enum IRPSTournament.Move",
       },
-      {
-        "name": "computerMoves",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
     ],
-    "stateMutability": "view"
+    outputs: [],
+    stateMutability: "nonpayable",
   },
   {
-    "type": "function",
-    "name": "oracle",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IRandomOracle"
-      }
-    ],
-    "stateMutability": "view"
+    type: "function",
+    name: "startGame",
+    inputs: [],
+    outputs: [],
+    stateMutability: "payable",
   },
   {
-    "type": "function",
-    "name": "playRound",
-    "inputs": [
+    type: "event",
+    name: "GameCompleted",
+    inputs: [
       {
-        "name": "playerMove",
-        "type": "uint8",
-        "internalType": "enum RPSTournament.Move"
-      }
+        name: "player",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "result",
+        type: "string",
+        indexed: false,
+        internalType: "string",
+      },
+      {
+        name: "playerWins",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "computerWins",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "payout",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
     ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
+    anonymous: false,
   },
   {
-    "type": "function",
-    "name": "startGame",
-    "inputs": [],
-    "outputs": [],
-    "stateMutability": "payable"
+    type: "event",
+    name: "GameStarted",
+    inputs: [
+      {
+        name: "player",
+        type: "address",
+        indexed: true,
+        internalType: "address",
+      },
+      {
+        name: "totalRounds",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "playerBet",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "computerBet",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
   },
   {
-    "type": "event",
-    "name": "GameCompleted",
-    "inputs": [
+    type: "event",
+    name: "RoundPlayed",
+    inputs: [
       {
-        "name": "player",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
+        name: "player",
+        type: "address",
+        indexed: true,
+        internalType: "address",
       },
       {
-        "name": "result",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
+        name: "round",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
       },
       {
-        "name": "playerWins",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: "playerMove",
+        type: "uint8",
+        indexed: false,
+        internalType: "enum IRPSTournament.Move",
       },
       {
-        "name": "computerWins",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
+        name: "computerMove",
+        type: "uint8",
+        indexed: false,
+        internalType: "enum IRPSTournament.Move",
       },
       {
-        "name": "payout",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
+        name: "result",
+        type: "string",
+        indexed: false,
+        internalType: "string",
+      },
     ],
-    "anonymous": false
+    anonymous: false,
   },
-  {
-    "type": "event",
-    "name": "GameStarted",
-    "inputs": [
-      {
-        "name": "player",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "totalRounds",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "playerBet",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "RoundPlayed",
-    "inputs": [
-      {
-        "name": "player",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "round",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "playerMove",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "enum RPSTournament.Move"
-      },
-      {
-        "name": "computerMove",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "enum RPSTournament.Move"
-      },
-      {
-        "name": "result",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
-      }
-    ],
-    "anonymous": false
-  }
-]as const;
+  { type: "error", name: "ComputerBetFailed", inputs: [] },
+  { type: "error", name: "GameAlreadyCompleted", inputs: [] },
+  { type: "error", name: "GameAlreadyInProgress", inputs: [] },
+  { type: "error", name: "MustPlaceBet", inputs: [] },
+  { type: "error", name: "NoActiveGame", inputs: [] },
+  { type: "error", name: "TransferFailed", inputs: [] },
+] as const;
