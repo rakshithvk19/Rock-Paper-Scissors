@@ -9,12 +9,27 @@ import {
 } from "../utils/constants";
 import type { Move } from "../types/game";
 
+/**
+ * GameBoard Component
+ * 
+ * Main game interface for playing Rock-Paper-Scissors rounds.
+ * Displays the current game state, score, and move selection buttons.
+ * 
+ * Features:
+ * - Shows game progress (current round, total rounds, pot amount)
+ * - Displays running score for player vs computer
+ * - Move selection interface with emoji buttons
+ * - Error message display for failed transactions
+ * - Different states for not started, in progress, and completed games
+ * 
+ * @component
+ */
 export function GameBoard() {
   const { address } = useAccount();
-  const { playRound, isPlayRoundPending, gameStatus } = useTournament(address);
+  const { playRound, isPlayRoundPending, gameStatus, playRoundErrorMsg } =
+    useTournament(address);
 
-  console.log("GameBoard Debug:", { address, gameStatus });
-
+  // Display placeholder when no game is active
   if (!gameStatus || gameStatus.state === GAME_STATES.NOT_STARTED) {
     return (
       <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -25,6 +40,7 @@ export function GameBoard() {
     );
   }
 
+  // Display game results when completed
   if (gameStatus.state === GAME_STATES.COMPLETED) {
     const playerWon =
       (gameStatus.playerWins || 0n) > (gameStatus.computerWins || 0n);
@@ -60,11 +76,17 @@ export function GameBoard() {
     );
   }
 
-  // Game in progress
+  // Game in progress - Main gameplay interface
+  
+  /**
+   * Handles player's move selection
+   * @param move - The move selected by the player (Rock/Paper/Scissors)
+   */
   const handleMoveClick = (move: Move) => {
     playRound(move);
   };
 
+  // Check if all rounds have been played
   const isGameComplete =
     (gameStatus.currentRound || 0n) >= (gameStatus.totalRounds || 0n);
 
@@ -98,6 +120,16 @@ export function GameBoard() {
           </p>
         </div>
       </div>
+
+      {/* Error message display */}
+      {playRoundErrorMsg && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600 text-sm flex items-center justify-center">
+            <span className="mr-2">⚠️</span>
+            {playRoundErrorMsg}
+          </p>
+        </div>
+      )}
 
       {/* Move selection */}
       {!isGameComplete && (

@@ -1,10 +1,25 @@
 import { useConnect, useAccount, useDisconnect } from 'wagmi'
 
+/**
+ * WalletConnect Component
+ * 
+ * Handles wallet connection and disconnection functionality.
+ * Provides interface for users to connect their Web3 wallet.
+ * 
+ * Features:
+ * - Lists available wallet connectors (MetaMask, WalletConnect, etc.)
+ * - Shows connected wallet address (truncated)
+ * - Disconnect functionality
+ * - Visual feedback for connection status (green when connected, gray when not)
+ * 
+ * @component
+ */
 export function WalletConnect() {
   const { connectors, connect } = useConnect()
   const { address, isConnected } = useAccount()
   const { disconnect } = useDisconnect()
 
+  // Display connected state with address and disconnect button
   if (isConnected && address) {
     return (
       <div className="bg-green-50 border border-green-200 rounded-lg p-4">
@@ -26,6 +41,7 @@ export function WalletConnect() {
     )
   }
 
+  // Display wallet connection options when not connected
   return (
     <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
       <p className="text-gray-700 mb-4">Connect your wallet to start playing</p>

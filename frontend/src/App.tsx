@@ -12,10 +12,26 @@ import { FundsBar } from "./components/FundsBar";
 
 const queryClient = new QueryClient();
 
+/**
+ * GameInterface Component
+ * 
+ * Main game interface that orchestrates all game components.
+ * Handles layout and conditional rendering based on wallet connection.
+ * 
+ * Layout:
+ * - Header with title and network info
+ * - Wallet connection component
+ * - Funds bar (when connected)
+ * - Three-column layout:
+ *   - Left: Betting panel (when no active game)
+ *   - Middle: Game board
+ *   - Right: Game history
+ */
 function GameInterface() {
   const { address, isConnected } = useAccount();
   const { gameStatus } = useTournament(address);
 
+  // Check if player can start a new game (no game in progress)
   const canStartNewGame =
     !gameStatus || gameStatus.state !== GAME_STATES.IN_PROGRESS;
 
@@ -127,6 +143,15 @@ function GameInterface() {
   );
 }
 
+/**
+ * App Component
+ * 
+ * Root component that provides necessary context providers:
+ * - WagmiProvider for Web3 functionality
+ * - QueryClientProvider for data fetching
+ * 
+ * @returns The complete Rock-Paper-Scissors application
+ */
 function App() {
   return (
     <WagmiProvider config={config}>

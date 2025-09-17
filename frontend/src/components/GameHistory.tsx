@@ -2,19 +2,41 @@ import { useAccount } from "wagmi";
 import { useTournament } from "../hooks/useTournament";
 import { MOVE_NAMES, MOVE_EMOJIS } from "../utils/constants";
 
+/**
+ * GameHistory Component
+ * 
+ * Displays the history of rounds played in the current game session.
+ * Shows each round's moves and results in a scrollable list.
+ * 
+ * Features:
+ * - Displays round number, player move, computer move, and result
+ * - Color-coded results (green for player wins, red for computer wins, yellow for draws)
+ * - Shows move emojis and names for better visualization
+ * - Scrollable container for games with many rounds
+ * - Loading state while fetching history
+ * 
+ * Note: History is session-based and clears when a new game starts.
+ * 
+ * @component
+ */
 export function GameHistory() {
   const { address } = useAccount();
-  const { moveHistory } = useTournament(address);
+  const { roundHistory, isLoadingHistory } = useTournament(address);
 
-  // console.log("GameHistory Debug:", { address, moveHistory });
+  // Show loading state while fetching history
+  if (isLoadingHistory) {
+    return (
+      <div className="bg-white border border-gray-200 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-800 mb-4">
+          Game History
+        </h3>
+        <p className="text-gray-500 text-center">Loading history...</p>
+      </div>
+    );
+  }
 
-  // Better safety checks
-  if (
-    !moveHistory ||
-    !moveHistory.playerMoves ||
-    !moveHistory.computerMoves ||
-    moveHistory.playerMoves.length === 0
-  ) {
+  // Show empty state when no rounds have been played
+  if (!roundHistory || roundHistory.length === 0) {
     return (
       <div className="bg-white border border-gray-200 rounded-lg p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
@@ -25,35 +47,14 @@ export function GameHistory() {
     );
   }
 
-  const rounds = moveHistory.playerMoves.map((playerMove, index) => {
-    const computerMove = moveHistory.computerMoves[index];
-    const playerMoveIndex = Number(playerMove);
-    const computerMoveIndex = Number(computerMove);
-
-    // Determine winner
-    let result = "Draw";
-    if (playerMove !== computerMove) {
-      const playerWins =
-        (playerMoveIndex === 0 && computerMoveIndex === 2) || // Rock vs Scissors
-        (playerMoveIndex === 1 && computerMoveIndex === 0) || // Paper vs Rock
-        (playerMoveIndex === 2 && computerMoveIndex === 1); // Scissors vs Paper
-      result = playerWins ? "You won" : "Computer won";
-    }
-
-    return {
-      round: index + 1,
-      playerMove: playerMoveIndex,
-      computerMove: computerMoveIndex,
-      result,
-    };
-  });
-
+  // Render the history of played rounds
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
       <h3 className="text-lg font-semibold text-gray-800 mb-4">Game History</h3>
 
+      {/* Scrollable container for round history */}
       <div className="space-y-3 max-h-60 overflow-y-auto">
-        {rounds.map((round) => (
+        {roundHistory.map((round) => (
           <div
             key={round.round}
             className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
@@ -74,11 +75,12 @@ export function GameHistory() {
                 {MOVE_NAMES[round.computerMove]}
               </div>
             </div>
+            {/* Color-coded result display */}
             <span
               className={`text-sm font-medium ${
-                round.result === "You won"
+                round.result === "Player wins"
                   ? "text-green-600"
-                  : round.result === "Computer won"
+                  : round.result === "Computer wins"
                   ? "text-red-600"
                   : "text-yellow-600"
               }`}

@@ -2,7 +2,12 @@ import { http, createConfig } from 'wagmi'
 import { injected, metaMask } from 'wagmi/connectors'
 import { FLUENT_RPC_URL, FLUENT_CHAIN_ID } from './utils/constants'
 
-// Define Fluent chain
+/**
+ * Fluent Chain Configuration
+ * 
+ * Defines the Fluent Devnet chain parameters for wagmi.
+ * This includes RPC endpoints, chain ID, native currency, and block explorer.
+ */
 export const fluentChain = {
   id: FLUENT_CHAIN_ID,
   name: 'Fluent',
@@ -20,6 +25,15 @@ export const fluentChain = {
   },
 } as const
 
+/**
+ * Wagmi Configuration
+ * 
+ * Main configuration for Web3 functionality.
+ * Sets up:
+ * - Supported chains (Fluent Devnet)
+ * - Wallet connectors (Injected wallets, MetaMask)
+ * - Transport layer (HTTP RPC)
+ */
 export const config = createConfig({
   chains: [fluentChain],
   connectors: [

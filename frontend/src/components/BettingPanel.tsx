@@ -9,18 +9,40 @@ import {
   QUICK_BET_OPTIONS,
 } from "../utils/constants";
 
+/**
+ * BettingPanel Component
+ * 
+ * Interface for placing bets to start a new tournament game.
+ * Allows users to select their bet amount and initiate a game.
+ * 
+ * Features:
+ * - Displays user's wallet balance
+ * - Bet amount slider with min/max limits
+ * - Quick bet selection buttons for common amounts
+ * - Error message display for failed transactions
+ * - Validates user has sufficient balance
+ * - Shows transaction pending state
+ * 
+ * @component
+ */
 export function BettingPanel() {
   const { address } = useAccount();
-  const { startGame, isStartGamePending } = useTournament(address);
+  const { startGame, isStartGamePending, startGameErrorMsg } =
+    useTournament(address);
   const { formattedWallet, canAfford } = useBalances(address);
   const [betAmount, setBetAmount] = useState(MIN_BET_ETH);
 
+  /**
+   * Handles the start game button click
+   * Validates bet amount and initiates the game
+   */
   const handleStartGame = () => {
     if (betAmount > 0) {
       startGame(betAmount);
     }
   };
 
+  // Check if user has sufficient balance for the selected bet
   const canAffordBet = canAfford(betAmount);
 
   return (
@@ -76,6 +98,16 @@ export function BettingPanel() {
         </div>
       </div>
 
+      {/* Error message display */}
+      {startGameErrorMsg && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-600 text-sm flex items-center">
+            <span className="mr-2">⚠️</span>
+            {startGameErrorMsg}
+          </p>
+        </div>
+      )}
+
       {/* Start game button */}
       <button
         onClick={handleStartGame}
@@ -91,7 +123,7 @@ export function BettingPanel() {
           : `Start Game (${betAmount} ETH)`}
       </button>
 
-      {!canAffordBet && address && (
+      {!canAffordBet && address && !startGameErrorMsg && (
         <p className="text-red-500 text-sm mt-2">Insufficient balance</p>
       )}
     </div>

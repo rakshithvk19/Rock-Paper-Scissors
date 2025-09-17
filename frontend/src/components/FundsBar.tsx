@@ -1,8 +1,21 @@
 import { useAccount } from "wagmi";
 import { useBalances } from "../hooks/useBalance";
 
+/**
+ * FundsBar Component
+ * 
+ * Horizontal display bar showing real-time balance information.
+ * Shows player balance, current pot, and computer balance.
+ * 
+ * Features:
+ * - Real-time balance updates via blockchain events
+ * - Displays wallet balance, game pot, and computer funds
+ * - Color-coded values for easy identification
+ * - Network indicator showing Fluent Devnet connection
+ * 
+ * @component
+ */
 export function FundsBar() {
-  // Remove potAmount prop
   const { address } = useAccount();
   const { formattedWallet, formattedComputer, formattedPot } =
     useBalances(address);
